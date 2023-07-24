@@ -50,7 +50,8 @@ class Recipe(models.Model):
                             help_text='Введите описание рецепта')
     ingredients = models.ManyToManyField(
         Ingredient, through='IngredientAmount',
-        through_fields=('recipe', 'ingredients'),
+        related_name='recipe',
+        through_fields=('recipe', 'ingredient'),
         verbose_name='Ингредиенты'
     )
     tags = models.ManyToManyField(
