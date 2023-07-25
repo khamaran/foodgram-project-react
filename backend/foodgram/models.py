@@ -1,9 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import UniqueConstraint
 
-User = get_user_model()
+from users.models import MyUser
 
 
 class Tag(models.Model):
@@ -41,7 +40,7 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название рецепта')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Автор')
+    author = models.ForeignKey(MyUser, on_delete=models.CASCADE, verbose_name='Автор')
     image = models.ImageField(
         'Картинка',
         upload_to='foodgram/images/'
@@ -50,7 +49,6 @@ class Recipe(models.Model):
                             help_text='Введите описание рецепта')
     ingredients = models.ManyToManyField(
         Ingredient, through='IngredientAmount',
-        related_name='recipe',
         through_fields=('recipe', 'ingredient'),
         verbose_name='Ингредиенты'
     )
@@ -75,8 +73,8 @@ class Recipe(models.Model):
 
 class IngredientAmount(models.Model):
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE, verbose_name='Ингредиенты')
-    recipe = models.ForeignKey(Recipe, related_name='ingredients_in_recipe_amount',
-                               on_delete=models.CASCADE, verbose_name='Рецепт')
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name='ingredient_amount',
+                               verbose_name='Рецепт')
     amount = models.PositiveIntegerField(
         verbose_name='Количество', validators=[MinValueValidator
                                                (1, message='В списке должен быть хотя бы один ингредиент!')]
@@ -99,7 +97,7 @@ class IngredientAmount(models.Model):
 
 class ShoppingCart(models.Model):
     user = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         related_name='shopping_cart',
         verbose_name='Пользователь',
@@ -125,7 +123,7 @@ class ShoppingCart(models.Model):
 
 class Favorite(models.Model):
     user = models.ForeignKey(
-        User,
+        MyUser,
         on_delete=models.CASCADE,
         related_name='favorites',
         verbose_name='Пользователь',
