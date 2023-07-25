@@ -22,7 +22,7 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=200, verbose_name='Ингредиент')
-    measurement_unit = models.CharField(max_length=200, verbose_name='Количество ингредиентов')
+    measurement_unit = models.CharField(max_length=200, verbose_name='Единица измерения')
 
     class Meta:
         verbose_name = 'Ингредиент'
