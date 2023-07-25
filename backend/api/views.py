@@ -16,7 +16,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from .filters import RecipeFilter
 from .serializers import TagSerializer, RecipeCreateSerializer, IngredientSerializer, \
-    ShortRecipeSerializer, RecipeReadSerializer, MyUserSerializer, FollowSerializer
+    ShortRecipeSerializer, RecipeReadSerializer, MyUserSerializer, MyUserCreateSerializer,\
+    FollowSerializer
 from .permissions import IsAdminOrReadOnly, IsUserOrReadOnly
 from .pagination import RecipePagination
 
@@ -124,41 +125,91 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
     pagination_class = RecipePagination
+    permission_classes = (IsAuthenticated,)
 
-    @action(
-        detail=True,
-        permission_classes=[IsAuthenticated],
-        methods=['POST', 'DELETE']
-    )
-    def follow(self, request, id):
-        user = request.user
-        following = get_object_or_404(MyUser, id=id)
-        if request.method == 'DELETE':
-            follow = get_object_or_404(
-                Follow, user=user, following=following
-            )
-            follow.delete()
-            return Response(status=HTTP_204_NO_CONTENT)
-        if Follow.objects.filter(user=user, following=following).exists():
-            return Response(
-                {'errors': 'Вы уже подписаны на этого пользователя!'},
-                status=status.HTTP_400_BAD_REQUEST)
-        follow = Follow.objects.create(user=user, following=following)
-        data = FollowSerializer(follow)
-        return Response(data.data, status=status.HTTP_201_CREATED)
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return MyUserSerializer
+        return MyUserCreateSerializer
 
     @action(
         detail=False,
-        permission_classes=[IsAuthenticated],
-        methods=['GET']
+        methods=['get'],
+        permission_classes=[IsAuthenticated]
     )
-    def followers(self, request):
-        user = request.user
-        queryset = MyUser.objects.filter(following__user=user)
-        pages = self.paginate_queryset(queryset)
+    def me(self, request, pk=None):
+        """Сериализатор профиля пользователя."""
+        if request.method == "PATCH":
+            serializer = self.get_serializer(
+                request.user,
+                data=request.data,
+                partial=True,
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsAuthenticated]
+    )
+    def follower(self, request, pk=None):
+        following = get_object_or_404(MyUser, pk=pk)
+        follower = self.request.user
+
+        if request.user == following:
+            return Response({
+                'errors': 'Вы не можете подписываться на самого себя!'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if Follow.objects.filter(following=following,
+                                 follower=follower).exists():
+            return Response({
+                'errors': f'Вы уже подписанны на автора {following}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        new_follow = Follow.objects.create(
+            following=following,
+            follower=follower
+        )
         serializer = FollowSerializer(
-            pages,
-            many=True,
+            new_follow,
             context={'request': request}
         )
-        return self.get_paginated_response(serializer.data)
+        return Response(serializer.data)
+
+    @follower.mapping.delete
+    def del_follower(self, request, pk=None):
+        following = get_object_or_404(MyUser, pk=pk)
+
+        if not Follow.objects.filter(
+                following=get_object_or_404(MyUser, pk=pk),
+                follower=self.request.user
+        ).exists():
+            return Response({
+                'errors': f'Вы не подписанны на автора {following}!'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        Follow.objects.filter(
+            following=get_object_or_404(MyUser, pk=pk),
+            follower=self.request.user
+        ).delete()
+        serializer = FollowSerializer(
+            Follow.objects.filter(following=following),
+            many=True
+        )
+        return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+
+class FollowersViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Follow.objects.all()
+    pagination_class = RecipePagination
+    permission_classes = [IsAuthenticated]
+    serializer_class = FollowSerializer
+
+    def get_queryset(self):
+        follower = self.request.user
+        return Follow.objects.filter(follower=follower)

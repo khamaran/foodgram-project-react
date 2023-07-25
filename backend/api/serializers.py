@@ -3,6 +3,7 @@ import datetime as dt
 
 import webcolors
 from django.core.files.base import ContentFile
+from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 
 from foodgram.models import Ingredient, IngredientAmount, Tag, Recipe, ShoppingCart, Favorite
@@ -10,7 +11,7 @@ from users.models import Follow, MyUser
 from rest_framework.validators import UniqueTogetherValidator
 
 
-class MyUserSerializer(serializers.ModelSerializer):
+class MyUserSerializer(UserSerializer):
     """Сериализатор для модели `User`."""
     is_follower = serializers.SerializerMethodField()
 
@@ -32,7 +33,7 @@ class MyUserSerializer(serializers.ModelSerializer):
         return Follow.objects.filter(user=user, following=obj).exists()
 
 
-class MyUserCreateSerializer(serializers.ModelSerializer):
+class MyUserCreateSerializer(UserCreateSerializer):
     class Meta:
         model = MyUser
         fields = (
@@ -57,39 +58,39 @@ class MyUserCreateSerializer(serializers.ModelSerializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    is_follower = serializers.SerializerMethodField()
     recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = MyUser
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-            'recipes',
-            'recipes_count'
-        )
-        read_only_fields = ('all',)
+        fields = ('email', 'id', 'username', 'first_name',
+                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+        read_only_fields = ('email', 'username', 'first_name', 'last_name',
+                            'is_subscribed', 'recipes', 'recipes_count')
 
-    def get_is_subscribed(self, obj):
-        return Follow.objects.filter(
-            user=obj.user, author=obj.author
-        ).exists()
-
-    def get_recipes_count(self, obj):
-        return Recipe.objects.filter(following=obj.following).count()
+    def get_is_follower(self, obj):
+        user = self.context['request'].user
+        if user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=user, following=obj).exists()
 
     def get_recipes(self, obj):
         request = self.context.get('request')
-        limit = request.GET.get('recipes_limit')
-        recipes = Recipe.objects.filter(following=obj.following)
-        if limit:
-            recipes = recipes[:int(limit)]
-        serializer = ShortRecipeSerializer(recipes, many=True, read_only=True)
-        return serializer.data
+        recipes_limit = None
+        recipes = obj.recipes.all()
+
+        if request:
+            recipes_limit = request.query_params.get('recipes_limit')
+
+        if recipes_limit:
+            recipes = obj.recipes.all()[:int(recipes_limit)]
+
+        return ShortRecipeSerializer(recipes, many=True,
+                                     context={'request': request}).data
+
+    def get_recipes_count(self, obj):
+        return obj.recipes.count()
 
 
 class Base64ImageField(serializers.ImageField):
