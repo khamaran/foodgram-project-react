@@ -2,6 +2,7 @@ import base64
 import datetime as dt
 
 import webcolors
+from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
@@ -23,7 +24,7 @@ class MyUserSerializer(UserSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed'
+            'is_follower'
         )
 
     def get_is_follower(self, obj):
@@ -42,20 +43,28 @@ class MyUserCreateSerializer(UserCreateSerializer):
             'username',
             'first_name',
             'last_name',
-            'is_subscribed'
+            'password'
         )
 
     def create(self, validated_data):
-        user = MyUser(
-            email=validated_data['email'],
-            username=validated_data['username'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name']
-        )
+        user = self.context['request'].user
         user.set_password(validated_data['password'])
         user.save()
         return user
 
+
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    class Meta:
+        model = MyUser
+        fields = ('current_password',
+                  'new_password')
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value
 
 class FollowSerializer(serializers.ModelSerializer):
     is_follower = serializers.SerializerMethodField()
@@ -65,9 +74,16 @@ class FollowSerializer(serializers.ModelSerializer):
     class Meta:
         model = MyUser
         fields = ('email', 'id', 'username', 'first_name',
-                  'last_name', 'is_subscribed', 'recipes', 'recipes_count')
+                  'last_name', 'is_follower', 'recipes', 'recipes_count')
         read_only_fields = ('email', 'username', 'first_name', 'last_name',
-                            'is_subscribed', 'recipes', 'recipes_count')
+                            'is_follower', 'recipes', 'recipes_count')
+        validators = (
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('user', 'following',),
+                message="Вы уже подписаны на этого автора"
+            ),
+        )
 
     def get_is_follower(self, obj):
         user = self.context['request'].user
@@ -91,6 +107,12 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
+
+    def validate(self, data):
+        if self.context['request'].user == data['following']:
+            raise serializers.ValidationError(
+                'Нельзя подписаться на самого себя!')
+        return data
 
 
 class Base64ImageField(serializers.ImageField):

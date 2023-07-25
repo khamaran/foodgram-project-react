@@ -1,14 +1,21 @@
+from django.conf import settings
+from django.contrib.auth import update_session_auth_hash
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters import utils
 from django_filters.rest_framework import DjangoFilterBackend
+from djoser.compat import get_user_email
+from djoser.views import UserViewSet
+from rest_framework.generics import UpdateAPIView, CreateAPIView
 from rest_framework.response import Response
-from rest_framework import filters, status
+from rest_framework import filters, status, generics
 from rest_framework import viewsets
 
 from foodgram.models import Tag, Recipe, Ingredient, \
     IngredientAmount, ShoppingCart, Favorite
 from rest_framework.status import HTTP_204_NO_CONTENT
+from rest_framework.views import APIView
 from users.models import Follow, MyUser
 
 from rest_framework.decorators import action
@@ -16,8 +23,8 @@ from rest_framework.permissions import IsAuthenticated
 
 from .filters import RecipeFilter
 from .serializers import TagSerializer, RecipeCreateSerializer, IngredientSerializer, \
-    ShortRecipeSerializer, RecipeReadSerializer, MyUserSerializer, MyUserCreateSerializer,\
-    FollowSerializer
+    ShortRecipeSerializer, RecipeReadSerializer, MyUserSerializer, MyUserCreateSerializer, \
+    FollowSerializer, ChangePasswordSerializer
 from .permissions import IsAdminOrReadOnly, IsUserOrReadOnly
 from .pagination import RecipePagination
 
@@ -117,15 +124,14 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (filters.SearchFilter, )
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
 
 
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
+class MyUserViewSet(UserViewSet):
     queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
     pagination_class = RecipePagination
-    permission_classes = (IsAuthenticated,)
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -202,6 +208,18 @@ class UserViewSet(viewsets.ReadOnlyModelViewSet):
             many=True
         )
         return Response(serializer.data, status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])
+    def set_password(self, request, pk=None):
+        user = self.request.user
+        serializer = ChangePasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({'status': 'password set'})
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class FollowersViewSet(viewsets.ReadOnlyModelViewSet):
