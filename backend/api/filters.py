@@ -1,7 +1,8 @@
 from django.contrib.auth import get_user_model
-from django_filters import FilterSet, CharFilter, AllValuesMultipleFilter, BooleanFilter
+from django_filters import FilterSet, CharFilter, \
+    AllValuesMultipleFilter, BooleanFilter
 
-from foodgram.models import Recipe, Tag
+from foodgram.models import Recipe
 
 User = get_user_model()
 

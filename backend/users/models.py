@@ -18,7 +18,8 @@ class MyUser(AbstractUser):
         (USER, 'user'),
         (ADMIN, 'admin'),
     ]
-    email = models.EmailField(_('Электронная почта'), max_length=254, unique=True)
+    email = models.EmailField(_('Электронная почта'),
+                              max_length=254, unique=True)
     username = models.CharField(
         verbose_name='Юзернейм',
         max_length=200,
@@ -49,9 +50,11 @@ class MyUser(AbstractUser):
 
 class Follow(models.Model):
     follower = models.ForeignKey(
-        MyUser, on_delete=models.CASCADE, related_name='follower', verbose_name='Подписчик')
+        MyUser, on_delete=models.CASCADE, related_name='follower',
+        verbose_name='Подписчик')
     following = models.ForeignKey(
-        MyUser, on_delete=models.CASCADE, related_name='following', verbose_name='Автор')
+        MyUser, on_delete=models.CASCADE, related_name='following',
+        verbose_name='Автор')
 
     class Meta:
         ordering = ['-id']

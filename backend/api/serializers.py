@@ -1,14 +1,12 @@
 import base64
-import datetime as dt
 
-import webcolors
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
 
-from foodgram.models import Ingredient, IngredientAmount, Tag, Recipe, ShoppingCart, Favorite
+from foodgram.models import Ingredient, IngredientAmount, \
+    Tag, Recipe, ShoppingCart, Favorite
 from users.models import Follow, MyUser
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -90,7 +88,9 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def validate_following(self, value):
         if self.context['request'].user == value:
-            raise serializers.ValidationError('Нельзя подписаться на самого себя')
+            raise serializers.ValidationError('Нельзя '
+                                              'подписаться '
+                                              'на самого себя')
         return value
 
     def get_recipes(self, obj):
@@ -169,18 +169,14 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    ingredients = IngredientAmountSerializer(many=True, read_only=True, source='ingredient_amount')
+    ingredients = IngredientAmountSerializer(many=True,
+                                             read_only=True,
+                                             source='ingredient_amount')
     tags = TagSerializer(many=True, read_only=True)
     author = MyUserSerializer(read_only=True, many=False)
     image = Base64ImageField()
     is_favorited = serializers.SerializerMethodField(read_only=True)
     is_in_shopping_cart = serializers.SerializerMethodField(read_only=True)
-
-    #def get_ingredients(self, instance):
-     #   return IngredientAmountSerializer(
-      #      instance.ingredient_amount.all(),
-      #      many=True
-      #  ).data
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
@@ -285,7 +281,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        return ShortRecipeSerializer(instance.recipe, context=self.context).data
+        return ShortRecipeSerializer(instance.recipe,
+                                     context=self.context).data
 
     def validate(self, data):
         user = data['user']
@@ -310,5 +307,5 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return data
 
     def to_representation(self, instance):
-        return ShortRecipeSerializer(instance.recipe, context=self.context).data
-
+        return ShortRecipeSerializer(instance.recipe,
+                                     context=self.context).data
