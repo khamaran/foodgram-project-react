@@ -4,11 +4,11 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.files.base import ContentFile
 from djoser.serializers import UserSerializer, UserCreateSerializer
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 
 from foodgram.models import Ingredient, IngredientAmount, \
     Tag, Recipe, ShoppingCart, Favorite
 from users.models import Follow, MyUser
-from rest_framework.validators import UniqueTogetherValidator
 
 
 class MyUserSerializer(UserSerializer):
@@ -28,9 +28,8 @@ class MyUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
-        if request is None or request.user.is_anonymous:
-            return False
-        return Follow.objects.filter(
+        return False if (request is None or request.user.is_anonymous) \
+            else Follow.objects.filter(
             follower=obj,
             following=request.user
         ).exists()
@@ -112,8 +111,6 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         following = obj.following
-        if not following:
-            return False
         return Follow.objects.filter(
             following=obj.follower,
             follower=following

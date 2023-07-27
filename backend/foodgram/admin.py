@@ -1,11 +1,11 @@
 from django.contrib import admin
 
 from .models import Ingredient, Tag, Recipe, ShoppingCart, \
-    Favorite, IngredientAmount
+    Favorite
 
 
 class IngredientAmountInline(admin.TabularInline):
-    model = IngredientAmount
+    model = Recipe.ingredients.through
     extra = 1
 
 
@@ -16,9 +16,7 @@ class RecipeAdmin(admin.ModelAdmin):
     inlines = (IngredientAmountInline, )
 
     def favorites_number(self, obj):
-        if Favorite.objects.filter(recipe=obj).exists():
-            return Favorite.objects.filter(recipe=obj).count()
-        return 0
+        return Favorite.objects.filter(recipe=obj).count()
 
 
 @admin.register(Tag)

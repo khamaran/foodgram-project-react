@@ -6,20 +6,18 @@ from djoser.views import UserViewSet
 from rest_framework.response import Response
 from rest_framework import filters, status
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, AllowAny
 
 from foodgram.models import Tag, Recipe, Ingredient, \
     IngredientAmount, ShoppingCart, Favorite
 from users.models import Follow, MyUser
-
-from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, SAFE_METHODS
-
 from .filters import RecipeFilter
 from .serializers import TagSerializer, RecipeCreateSerializer, \
     IngredientSerializer, ShortRecipeSerializer, \
     RecipeReadSerializer, MyUserSerializer, \
     MyUserCreateSerializer, FollowSerializer, ChangePasswordSerializer
-from .permissions import IsAdminOrReadOnly, IsUserOrReadOnly
+from .permissions import IsUserOrReadOnly
 from .pagination import RecipePagination
 
 
@@ -27,7 +25,7 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для модели `Tag`."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (AllowAny,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -77,18 +75,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk=None):
         if request.method == 'POST':
             return self.get_obj(Favorite, request.user, pk)
-        elif request.method == 'DELETE':
+        else:
             return self.delete_obj(Favorite, request.user, pk)
-        return None
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk=None):
         if request.method == 'POST':
             return self.get_obj(ShoppingCart, request.user, pk)
-        elif request.method == 'DELETE':
+        else:
             return self.delete_obj(ShoppingCart, request.user, pk)
-        return None
 
     @action(
         detail=False,
@@ -120,7 +116,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     """Вьюсет для модели `Ingredient`."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (AllowAny,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('^name',)
 

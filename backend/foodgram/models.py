@@ -3,15 +3,17 @@ from django.db import models
 from django.db.models import UniqueConstraint
 
 from users.models import MyUser
+from .constants import NAME_MAX_LENGTH, COLOR_MAX_LENGTH
+from ..backend.settings import IMAGE_UPLOAD_PATH
 
 
 class Tag(models.Model):
     """Модель Тэга."""
-    name = models.CharField(max_length=200, verbose_name='Тэг',
+    name = models.CharField(max_length=NAME_MAX_LENGTH, verbose_name='Тэг',
                             unique=True)
-    color = models.CharField(max_length=7, unique=True,
+    color = models.CharField(max_length=COLOR_MAX_LENGTH, unique=True,
                              verbose_name='Цвета тэга')
-    slug = models.SlugField(unique=True, max_length=200)
+    slug = models.SlugField(unique=True, max_length=NAME_MAX_LENGTH)
 
     class Meta:
         verbose_name = "Тэг"
@@ -24,8 +26,9 @@ class Tag(models.Model):
 
 class Ingredient(models.Model):
     """Модель Ингредиентов."""
-    name = models.CharField(max_length=200, verbose_name='Ингредиент')
-    measurement_unit = models.CharField(max_length=200,
+    name = models.CharField(max_length=NAME_MAX_LENGTH,
+                            verbose_name='Ингредиент')
+    measurement_unit = models.CharField(max_length=NAME_MAX_LENGTH,
                                         verbose_name='Единица измерения')
 
     class Meta:
@@ -45,12 +48,13 @@ class Ingredient(models.Model):
 
 class Recipe(models.Model):
     """Модель Рецепта."""
-    name = models.CharField(max_length=200, verbose_name='Название рецепта')
+    name = models.CharField(max_length=NAME_MAX_LENGTH,
+                            verbose_name='Название рецепта')
     author = models.ForeignKey(MyUser, on_delete=models.CASCADE,
                                verbose_name='Автор')
     image = models.ImageField(
         'Картинка',
-        upload_to='foodgram/images/'
+        upload_to=IMAGE_UPLOAD_PATH
     )
     text = models.TextField(verbose_name='Описание',
                             help_text='Введите описание рецепта')
@@ -71,9 +75,13 @@ class Recipe(models.Model):
                                               'время '
                                               'приготовления 1 минута!')]
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True
+    )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['-pub_date']
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 

@@ -3,6 +3,8 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from foodgram.constants import NAME_MAX_LENGTH, EMAIL_MAX_LENGTH
+
 
 class MyUser(AbstractUser):
     """Кастомная модель `User`."""
@@ -19,24 +21,24 @@ class MyUser(AbstractUser):
         (ADMIN, 'admin'),
     ]
     email = models.EmailField(_('Электронная почта'),
-                              max_length=254, unique=True)
+                              max_length=EMAIL_MAX_LENGTH, unique=True)
     username = models.CharField(
         verbose_name='Юзернейм',
-        max_length=200,
+        max_length=NAME_MAX_LENGTH,
         unique=True,
         validators=(UnicodeUsernameValidator(), ),
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=200,
+        max_length=NAME_MAX_LENGTH,
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=200,
+        max_length=NAME_MAX_LENGTH,
     )
     password = models.CharField(
         verbose_name='Пароль',
-        max_length=200,
+        max_length=NAME_MAX_LENGTH,
     )
 
     class Meta:
@@ -67,3 +69,6 @@ class Follow(models.Model):
                 name='unique_follow',
             )
         ]
+
+    def __str__(self):
+        return f'Пользователь {self.follower} подписался на {self.following}'
