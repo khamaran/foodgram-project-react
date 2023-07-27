@@ -49,6 +49,7 @@ class MyUser(AbstractUser):
 
 
 class Follow(models.Model):
+    """Модель Подписки."""
     follower = models.ForeignKey(
         MyUser, on_delete=models.CASCADE, related_name='follower',
         verbose_name='Подписчик')

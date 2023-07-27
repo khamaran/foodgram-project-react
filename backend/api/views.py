@@ -24,12 +24,14 @@ from .pagination import RecipePagination
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для модели `Tag`."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (IsAdminOrReadOnly,)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели `Recipe`."""
     queryset = Recipe.objects.all()
     serializer_class = RecipeCreateSerializer
     permission_classes = (IsUserOrReadOnly,)
@@ -115,6 +117,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
+    """Вьюсет для модели `Ingredient`."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAdminOrReadOnly,)
@@ -123,6 +126,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MyUserViewSet(UserViewSet):
+    """Вьюсет для кастомной модели `User`."""
     queryset = MyUser.objects.all()
     serializer_class = MyUserSerializer
     pagination_class = RecipePagination

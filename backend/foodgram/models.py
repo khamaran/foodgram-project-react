@@ -6,6 +6,7 @@ from users.models import MyUser
 
 
 class Tag(models.Model):
+    """Модель Тэга."""
     name = models.CharField(max_length=200, verbose_name='Тэг',
                             unique=True)
     color = models.CharField(max_length=7, unique=True,
@@ -22,6 +23,7 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
+    """Модель Ингредиентов."""
     name = models.CharField(max_length=200, verbose_name='Ингредиент')
     measurement_unit = models.CharField(max_length=200,
                                         verbose_name='Единица измерения')
@@ -42,6 +44,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
+    """Модель Рецепта."""
     name = models.CharField(max_length=200, verbose_name='Название рецепта')
     author = models.ForeignKey(MyUser, on_delete=models.CASCADE,
                                verbose_name='Автор')
@@ -79,6 +82,7 @@ class Recipe(models.Model):
 
 
 class IngredientAmount(models.Model):
+    """Модель связи количества Ингредиентов в Рецепте."""
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE,
                                    verbose_name='Ингредиенты')
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE,
@@ -108,6 +112,7 @@ class IngredientAmount(models.Model):
 
 
 class ShoppingCart(models.Model):
+    """Модель Списка покупок."""
     user = models.ForeignKey(
         MyUser,
         on_delete=models.CASCADE,
@@ -134,6 +139,7 @@ class ShoppingCart(models.Model):
 
 
 class Favorite(models.Model):
+    """Модель добавления Рецепта в Избранное."""
     user = models.ForeignKey(
         MyUser,
         on_delete=models.CASCADE,
