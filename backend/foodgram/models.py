@@ -4,7 +4,7 @@ from django.db.models import UniqueConstraint
 
 from users.models import MyUser
 from .constants import NAME_MAX_LENGTH, COLOR_MAX_LENGTH
-from ..backend.settings import IMAGE_UPLOAD_PATH
+from django.conf import settings
 
 
 class Tag(models.Model):
@@ -54,7 +54,7 @@ class Recipe(models.Model):
                                verbose_name='Автор')
     image = models.ImageField(
         'Картинка',
-        upload_to=IMAGE_UPLOAD_PATH
+        upload_to=settings.IMAGE_UPLOAD_PATH
     )
     text = models.TextField(verbose_name='Описание',
                             help_text='Введите описание рецепта')
@@ -105,7 +105,7 @@ class IngredientAmount(models.Model):
     )
 
     class Meta:
-        ordering = ['-id']
+        ordering = ['ingredient']
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецептах'
         constraints = [

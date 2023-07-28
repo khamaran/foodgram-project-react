@@ -175,7 +175,7 @@ class MyUserViewSet(UserViewSet):
             if Follow.objects.filter(following=following,
                                      follower=follower).exists():
                 return Response({
-                    'errors': f'Вы уже подписанны на автора {following}'
+                    'errors': f'Вы уже подписаны на автора {following}!'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             new_follow = Follow.objects.create(

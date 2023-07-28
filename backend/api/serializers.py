@@ -69,11 +69,6 @@ class FollowSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
-    email = serializers.ReadOnlyField(source='following.email')
-    id = serializers.ReadOnlyField(source='following.id')
-    first_name = serializers.ReadOnlyField(source='following.first_name')
-    last_name = serializers.ReadOnlyField(source='following.last_name')
-    username = serializers.ReadOnlyField(source='following.username')
 
     class Meta:
         model = MyUser
@@ -219,7 +214,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=Tag.objects.all(),
-        error_messages={'does_not_exist': 'Такого тега не существует'}
+        error_messages={'does_not_exist': 'Тэг не существует!'}
     )
     image = Base64ImageField(max_length=None)
     author = MyUserSerializer(read_only=True)
@@ -311,7 +306,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         user = data['user']
         if user.favorites.filter(recipe=data['recipe']).exists():
             raise serializers.ValidationError(
-                'Рецепт уже добавлен в Избранное!'
+                'Рецепт уже был добавлен в Избранное!'
             )
         return data
 
