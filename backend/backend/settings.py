@@ -1,14 +1,17 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-^c#&=af()g18k$9!@@jqsl=!4rioeuy28s7(_jzq^n__^$2=xl'
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['62.84.120.52', 'khamafoodgram.didns.ru', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS").split(' ')
 
 INSTALLED_APPS = [
     'users.apps.UsersConfig',
@@ -65,6 +68,7 @@ DATABASES = {
         'HOST': os.getenv('DB_HOST', ''),
         'PORT': os.getenv('DB_PORT', 5432)
     }
+
 
 }
 
