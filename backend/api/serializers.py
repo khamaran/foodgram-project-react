@@ -69,6 +69,11 @@ class FollowSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
+    email = serializers.ReadOnlyField(source='following.email')
+    id = serializers.ReadOnlyField(source='following.id')
+    first_name = serializers.ReadOnlyField(source='following.first_name')
+    last_name = serializers.ReadOnlyField(source='following.last_name')
+    username = serializers.ReadOnlyField(source='following.username')
 
     class Meta:
         model = MyUser
@@ -106,6 +111,8 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         following = obj.following
+        if not following:
+            return False
         return Follow.objects.filter(
             following=obj.follower,
             follower=following
