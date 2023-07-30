@@ -110,12 +110,11 @@ class FollowSerializer(serializers.ModelSerializer):
             context=context).data
 
     def get_is_subscribed(self, obj):
-        following = obj.following
-        if not following:
+        if not obj.following:
             return False
         return Follow.objects.filter(
             following=obj.follower,
-            follower=following
+            follower=obj.following
         ).exists()
 
     @staticmethod
@@ -225,7 +224,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     )
     image = Base64ImageField(max_length=None)
     author = MyUserSerializer(read_only=True)
-    cooking_time = serializers.IntegerField()
+    cooking_time = serializers.IntegerField(min_value=1)
 
     class Meta:
         model = Recipe

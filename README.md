@@ -4,7 +4,7 @@
 http://khamafoodgram.didns.ru
 
 - Логин администратора: khamaran@yahoo.com
-- Пароль администратора: Tommnam1997!
+- Пароль администратора: Tomnam1997!
 
 ## Описание
 
