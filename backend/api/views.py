@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, AllowAny
 from foodgram.models import Tag, Recipe, Ingredient, \
     IngredientAmount, ShoppingCart, Favorite
 from users.models import Follow, MyUser
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .serializers import TagSerializer, RecipeCreateSerializer, \
     IngredientSerializer, ShortRecipeSerializer, \
     RecipeReadSerializer, MyUserSerializer, \
@@ -117,7 +117,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (IngredientFilter,)
     search_fields = ('^name',)
 
 

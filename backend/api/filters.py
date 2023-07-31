@@ -1,11 +1,16 @@
-from django_filters import FilterSet, \
-    AllValuesMultipleFilter, NumberFilter
+from django_filters import FilterSet, NumberFilter, \
+    ModelMultipleChoiceFilter
 
-from foodgram.models import Recipe
+from foodgram.models import Recipe, Ingredient, Tag
+from rest_framework.filters import SearchFilter
 
 
 class RecipeFilter(FilterSet):
-    tags = AllValuesMultipleFilter('tags__slug')
+    tags = ModelMultipleChoiceFilter(
+        field_name='tags__slug',
+        queryset=Tag.objects.all(),
+        to_field_name='slug',
+    )
     is_favorited = NumberFilter(method='get_is_favorited')
     is_in_shopping_cart = NumberFilter(
         method='get_is_in_shopping_cart')
@@ -23,3 +28,11 @@ class RecipeFilter(FilterSet):
         if value:
             return queryset.filter(shopping_cart__user=self.request.user.id)
         return queryset
+
+
+class IngredientFilter(SearchFilter):
+    search_param = 'name'
+
+    class Meta:
+        model = Ingredient
+        fields = ('name',)

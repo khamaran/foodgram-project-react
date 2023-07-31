@@ -11,7 +11,7 @@ class UserAdmin(admin.ModelAdmin):
         'first_name',
         'last_name',
     )
-    search_fields = ('name',)
+    search_fields = ('username',)
 
 
 @admin.register(Follow)

@@ -12,9 +12,11 @@ class IngredientAmountInline(admin.TabularInline):
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('name', 'author', 'favorites_number')
-    list_filter = ('author', 'name', 'tags')
+    search_fields = ['name', 'author__username']
+    list_filter = ['tags']
     inlines = (IngredientAmountInline, )
 
+    @admin.display(description='В избранном')
     def favorites_number(self, obj):
         return Favorite.objects.filter(recipe=obj).count()
 
@@ -22,12 +24,13 @@ class RecipeAdmin(admin.ModelAdmin):
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'color')
+    search_fields = ['name', 'slug']
 
 
 @admin.register(Ingredient)
 class IngredientAdmin(admin.ModelAdmin):
     list_display = ('name', 'measurement_unit')
-    list_filter = ('name',)
+    search_fields = ['name']
 
 
 admin.site.register(ShoppingCart)
